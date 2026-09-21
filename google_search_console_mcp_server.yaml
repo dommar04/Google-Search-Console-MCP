@@ -1,0 +1,636 @@
+mcp-builder-ai:
+  version: '1.0'
+  description: This template was exported using the https://mcp-builder.ai Server Editor.
+
+project:
+  title: google_search_console
+
+security:
+  type: OAUTH2
+  provider: custom
+  issuerUrl: https://accounts.google.com
+
+tools:
+
+  #
+  # Tool 1:
+  # listSitemaps
+  # List sitemaps submitted for a Search Console property. Optionally filter by sitemap index URL.
+  #
+  listSitemaps:
+    mcp:
+      type: tool
+      name: listSitemaps
+      description: List sitemaps submitted for a Search Console property. Optionally filter by sitemap index URL.
+      inputSchema:
+        type: object
+        properties:
+          siteUrl:
+            type: string
+            description: Search Console property URI, such as https://www.example.com/ or sc-domain:example.com.
+            example: https://www.example.com/
+          sitemapIndex:
+            type: string
+            description: Optional sitemap index URL used to filter the results.
+            format: uri
+            example: https://www.example.com/sitemap-index.xml
+        required:
+          - siteUrl
+    secret:
+      AUTHORIZATION:
+        type: PASS_THROUGH
+
+    fulfillments:
+
+      - name: get_sitemaps_by_siteurl
+        summary: List submitted sitemaps
+        type: READ
+        instructions:
+          - request:
+              url: https://www.googleapis.com/webmasters/v3/sites/${URLENCODE(___PARAMETER___(siteUrl))}/sitemaps
+              httpType: GET
+              contentType: application/json
+              headerParameters:
+                - Authorization: ___PARAMETER___(AUTHORIZATION)
+              queryParameters:
+                - sitemapIndex: ___PARAMETER___(sitemapIndex)
+              allowFailure: False
+              forwardResponseErrors: True
+
+    responses:
+
+      - name: ok
+        statuscode: 200
+        default: True
+        schema:
+          map: VALUE(get_sitemaps_by_siteurl, $)
+
+  #
+  # Tool 2:
+  # getSitemapDetails
+  # Get submission and processing details for one sitemap.
+  #
+  getSitemapDetails:
+    mcp:
+      type: tool
+      name: getSitemapDetails
+      description: Get submission and processing details for one sitemap.
+      inputSchema:
+        type: object
+        properties:
+          siteUrl:
+            type: string
+            description: Search Console property URI, such as https://www.example.com/ or sc-domain:example.com.
+            example: https://www.example.com/
+          feedpath:
+            type: string
+            description: Sitemap URL or feed path to inspect.
+            format: uri
+            example: https://www.example.com/sitemap.xml
+        required:
+          - siteUrl
+          - feedpath
+    secret:
+      AUTHORIZATION:
+        type: PASS_THROUGH
+
+    fulfillments:
+
+      - name: get_sitemaps_by_feedpath
+        summary: Get one sitemap's metadata
+        type: READ
+        instructions:
+          - request:
+              url: https://www.googleapis.com/webmasters/v3/sites/${URLENCODE(___PARAMETER___(siteUrl))}/sitemaps/${URLENCODE(___PARAMETER___(feedpath))}
+              httpType: GET
+              contentType: application/json
+              headerParameters:
+                - Authorization: ___PARAMETER___(AUTHORIZATION)
+              allowFailure: False
+              forwardResponseErrors: True
+
+    responses:
+
+      - name: ok
+        statuscode: 200
+        default: True
+        schema:
+          map: VALUE(get_sitemaps_by_feedpath, $)
+
+  #
+  # Tool 3:
+  # listSearchConsoleSites
+  # List Search Console properties the account can access.
+  #
+  listSearchConsoleSites:
+    mcp:
+      type: tool
+      name: listSearchConsoleSites
+      description: List Search Console properties the account can access.
+      inputSchema:
+        type: object
+        properties: {}
+    secret:
+      AUTHORIZATION:
+        type: PASS_THROUGH
+
+    fulfillments:
+
+      - name: load_sites
+        summary: List accessible Search Console properties
+        type: READ
+        instructions:
+          - request:
+              url: https://www.googleapis.com/webmasters/v3/sites
+              httpType: GET
+              contentType: application/json
+              headerParameters:
+                - Authorization: ___PARAMETER___(AUTHORIZATION)
+              allowFailure: False
+              forwardResponseErrors: True
+
+    responses:
+
+      - name: ok
+        statuscode: 200
+        default: True
+        schema:
+          map: VALUE(load_sites, $)
+
+  #
+  # Tool 4:
+  # inspectUrlIndexing
+  # Check whether a URL is indexed and review its Search Console inspection result.
+  #
+  inspectUrlIndexing:
+    mcp:
+      type: tool
+      name: inspectUrlIndexing
+      description: Check whether a URL is indexed and review its Search Console inspection result.
+      inputSchema:
+        type: object
+        properties:
+          requestbody:
+            type: object
+            description: URL Inspection request containing the URL and its Search Console property.
+            example: '{"inspectionUrl":"https://www.example.com/page","siteUrl":"https://www.example.com/"}'
+            properties:
+              inspectionUrl:
+                type: string
+                description: Fully qualified URL to inspect.
+                format: uri
+              siteUrl:
+                type: string
+                description: Search Console property URI, such as https://www.example.com/ or sc-domain:example.com.
+              languageCode:
+                type: string
+                description: Optional BCP-47 language code for localized inspection messages.
+                example: en-US
+        required:
+          - requestbody
+    secret:
+      AUTHORIZATION:
+        type: PASS_THROUGH
+
+    fulfillments:
+
+      - name: insert_index_inspect
+        summary: Inspect URL indexing status
+        type: UPDATE
+        instructions:
+          - request:
+              url: https://www.googleapis.com/webmasters/v3/v1/urlInspection/index:inspect
+              httpType: POST
+              contentType: application/json
+              headerParameters:
+                - Authorization: ___PARAMETER___(AUTHORIZATION)
+              schema:
+                map: BODY($)
+              allowFailure: False
+              forwardResponseErrors: True
+
+    responses:
+
+      - name: ok
+        statuscode: 200
+        default: True
+        schema:
+          map: VALUE(insert_index_inspect, $)
+
+  #
+  # Tool 5:
+  # querySearchAnalytics
+  # Query Search Console performance data by date, query, page, country, device, or search appearance.
+  #
+  querySearchAnalytics:
+    mcp:
+      type: tool
+      name: querySearchAnalytics
+      description: Query Search Console performance data by date, query, page, country, device, or search appearance.
+      inputSchema:
+        type: object
+        properties:
+          siteUrl:
+            type: string
+            description: Search Console property URI, such as https://www.example.com/ or sc-domain:example.com.
+            example: https://www.example.com/
+          requestbody:
+            type: object
+            description: Search Analytics request. Include a date range; dimensions and filters are optional.
+            example: '{"startDate":"2026-01-01","endDate":"2026-01-31","dimensions":["query"]}'
+            properties:
+              startDate:
+                type: string
+                description: First date to include, in YYYY-MM-DD format.
+                format: date
+              endDate:
+                type: string
+                description: Last date to include, in YYYY-MM-DD format.
+                format: date
+              dimensions:
+                type: array
+                items:
+                  type: string
+                  enum:
+                    - date
+                    - query
+                    - page
+                    - country
+                    - device
+                    - searchAppearance
+                description: Optional dimensions used to group the results.
+              type:
+                type: string
+                description: Search type. Use web unless another supported type is needed.
+                enum:
+                  - web
+                  - image
+                  - video
+                  - news
+                  - discover
+                  - googleNews
+              searchType:
+                type: string
+                description: Deprecated search type field; use type instead.
+                enum:
+                  - web
+                  - image
+                  - video
+                  - news
+              dimensionFilterGroups:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    groupType:
+                      type: string
+                      description: Filter group logic.
+                      enum:
+                        - and
+                    filters:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          dimension:
+                            type: string
+                            enum:
+                              - date
+                              - query
+                              - page
+                              - country
+                              - device
+                              - searchAppearance
+                          operator:
+                            type: string
+                            enum:
+                              - contains
+                              - equals
+                              - notContains
+                              - notEquals
+                              - includingRegex
+                              - excludingRegex
+                          expression:
+                            type: string
+              aggregationType:
+                type: string
+                description: How results are aggregated.
+                enum:
+                  - auto
+                  - byPage
+                  - byProperty
+              dataState:
+                type: string
+                description: Data freshness to return.
+                enum:
+                  - final
+                  - all
+                  - hourly_all
+              rowLimit:
+                type: integer
+                description: Maximum number of rows to return.
+              startRow:
+                type: integer
+                description: Zero-based row offset for pagination.
+        required:
+          - siteUrl
+          - requestbody
+    secret:
+      AUTHORIZATION:
+        type: PASS_THROUGH
+
+    fulfillments:
+
+      - name: insert_query_by_siteurl
+        summary: Query Search Console performance data
+        type: UPDATE
+        instructions:
+          - request:
+              url: https://www.googleapis.com/webmasters/v3/sites/${URLENCODE(___PARAMETER___(siteUrl))}/searchAnalytics/query
+              httpType: POST
+              contentType: application/json
+              headerParameters:
+                - Authorization: ___PARAMETER___(AUTHORIZATION)
+              schema:
+                map: BODY($)
+              allowFailure: False
+              forwardResponseErrors: True
+
+    responses:
+
+      - name: ok
+        statuscode: 200
+        default: True
+        schema:
+          map: VALUE(insert_query_by_siteurl, $)
+
+  #
+  # Tool 6:
+  # getSearchConsoleSettings
+  # Retrieve Search Console settings for a property, including configured geographic target, preferred domain, and other available settings.
+  #
+  getSearchConsoleSettings:
+    mcp:
+      type: tool
+      name: getSearchConsoleSettings
+      description: Retrieve Search Console settings for a property, including configured geographic target, preferred domain, and other available settings.
+      inputSchema:
+        type: object
+        properties:
+          siteUrl:
+            type: string
+            description: Search Console property URI, such as https://www.example.com/ or sc-domain:example.com.
+            example: https://www.example.com/
+        required:
+          - siteUrl
+    secret:
+      AUTHORIZATION:
+        type: PASS_THROUGH
+
+    fulfillments:
+
+      - name: get_search_console_settings
+        summary: Get Search Console property settings
+        type: READ
+        instructions:
+          - request:
+              url: https://www.googleapis.com/webmasters/v3/sites/${URLENCODE(___PARAMETER___(siteUrl))}
+              httpType: GET
+              contentType: application/json
+              headerParameters:
+                - Authorization: ___PARAMETER___(AUTHORIZATION)
+              allowFailure: False
+              forwardResponseErrors: True
+
+    responses:
+
+      - name: ok
+        statuscode: 200
+        default: True
+        schema:
+          map: VALUE(get_search_console_settings, $)
+
+  #
+  # Tool 7:
+  # getSeoOpportunities
+  # Find Search Console SEO opportunities such as high-impression queries with low CTR and queries ranking between positions 4 and 20.
+  #
+  getSeoOpportunities:
+    mcp:
+      type: tool
+      name: getSeoOpportunities
+      description: Find Search Console SEO opportunities such as high-impression queries with low CTR and queries ranking between positions 4 and 20.
+      inputSchema:
+        type: object
+        properties:
+          siteUrl:
+            type: string
+            description: Search Console property URI, such as https://www.example.com/ or sc-domain:example.com.
+            example: https://www.example.com/
+          startDate:
+            type: string
+            description: First date to include, in YYYY-MM-DD format.
+            format: date
+            example: '2026-01-01'
+          endDate:
+            type: string
+            description: Last date to include, in YYYY-MM-DD format.
+            format: date
+            example: '2026-01-31'
+          rowLimit:
+            type: integer
+            description: Maximum number of opportunity rows to return.
+            example: '100'
+        required:
+          - siteUrl
+          - startDate
+          - endDate
+    secret:
+      AUTHORIZATION:
+        type: PASS_THROUGH
+
+    fulfillments:
+
+      - name: query_seo_opportunities
+        summary: Query Search Console data for SEO opportunities
+        type: UPDATE
+        instructions:
+          - request:
+              url: https://www.googleapis.com/webmasters/v3/sites/${URLENCODE(___PARAMETER___(siteUrl))}/searchAnalytics/query
+              httpType: POST
+              contentType: application/json
+              headerParameters:
+                - Authorization: ___PARAMETER___(AUTHORIZATION)
+              schema:
+                startDate: ___PARAMETER___(startDate)
+                endDate: ___PARAMETER___(endDate)
+                dimensions:
+                  list: LIST_BY_VALUES(query,page)
+                  item:
+                    map: VALUE(@, $)
+                rowLimit: ___PARAMETER___(rowLimit)
+              allowFailure: False
+              forwardResponseErrors: True
+
+    responses:
+
+      - name: ok
+        statuscode: 200
+        default: True
+        schema:
+          map: VALUE(query_seo_opportunities, $)
+
+  #
+  # Tool 8:
+  # getSearchPerformanceReport
+  # Generate a Search Console performance report grouped by selected dimensions such as date, query, page, country, device, or search appearance.
+  #
+  getSearchPerformanceReport:
+    mcp:
+      type: tool
+      name: getSearchPerformanceReport
+      description: Generate a Search Console performance report grouped by selected dimensions such as date, query, page, country, device, or search appearance.
+      inputSchema:
+        type: object
+        properties:
+          siteUrl:
+            type: string
+            description: Search Console property URI, such as https://www.example.com/ or sc-domain:example.com.
+            example: https://www.example.com/
+          startDate:
+            type: string
+            description: First date to include, in YYYY-MM-DD format.
+            format: date
+            example: '2026-01-01'
+          endDate:
+            type: string
+            description: Last date to include, in YYYY-MM-DD format.
+            format: date
+            example: '2026-01-31'
+          requestbody:
+            type: array
+            description: Dimensions used to group the report results.
+            example: '["query","page"]'
+            items:
+              type: string
+              enum:
+                - date
+                - query
+                - page
+                - country
+                - device
+                - searchAppearance
+            minItems: 1
+            maxItems: 5
+          rowLimit:
+            type: integer
+            description: Maximum number of rows to return.
+            example: '100'
+          startRow:
+            type: integer
+            description: Zero-based row offset for pagination.
+            example: '0'
+        required:
+          - siteUrl
+          - startDate
+          - endDate
+          - requestbody
+    secret:
+      AUTHORIZATION:
+        type: PASS_THROUGH
+
+    fulfillments:
+
+      - name: run_search_performance_report
+        summary: Run a grouped Search Console performance report
+        type: UPDATE
+        instructions:
+          - request:
+              url: https://www.googleapis.com/webmasters/v3/sites/${URLENCODE(___PARAMETER___(siteUrl))}/searchAnalytics/query
+              httpType: POST
+              contentType: application/json
+              headerParameters:
+                - Authorization: ___PARAMETER___(AUTHORIZATION)
+              schema:
+                startDate: ___PARAMETER___(startDate)
+                endDate: ___PARAMETER___(endDate)
+                dimensions:
+                  list: BODY()
+                  item:
+                    map: VALUE(@, $)
+                rowLimit: ___PARAMETER___(rowLimit)
+                startRow: ___PARAMETER___(startRow)
+              allowFailure: False
+              forwardResponseErrors: True
+
+    responses:
+
+      - name: ok
+        statuscode: 200
+        default: True
+        schema:
+          map: VALUE(run_search_performance_report, $)
+
+  #
+  # Tool 9:
+  # getSearchConsoleMetadata
+  # Retrieve the supported Search Console Search Analytics dimensions and metrics by querying a property. The API does not provide a standalone metadata endpoint, so this tool runs a minimal valid analytics query.
+  #
+  getSearchConsoleMetadata:
+    mcp:
+      type: tool
+      name: getSearchConsoleMetadata
+      description: Retrieve the supported Search Console Search Analytics dimensions and metrics by querying a property. The API does not provide a standalone metadata endpoint, so this tool runs a minimal valid analytics query.
+      inputSchema:
+        type: object
+        properties:
+          siteUrl:
+            type: string
+            description: Search Console property URI, such as https://www.example.com/ or sc-domain:example.com.
+            example: https://www.example.com/
+          startDate:
+            type: string
+            description: First date to include, in YYYY-MM-DD format.
+            format: date
+            example: '2026-01-01'
+          endDate:
+            type: string
+            description: Last date to include, in YYYY-MM-DD format.
+            format: date
+            example: '2026-01-31'
+        required:
+          - siteUrl
+          - startDate
+          - endDate
+    secret:
+      AUTHORIZATION:
+        type: PASS_THROUGH
+
+    fulfillments:
+
+      - name: get_search_console_metadata
+        summary: Run a minimal Search Console analytics query
+        type: UPDATE
+        instructions:
+          - request:
+              url: https://www.googleapis.com/webmasters/v3/sites/${URLENCODE(___PARAMETER___(siteUrl))}/searchAnalytics/query
+              httpType: POST
+              contentType: application/json
+              headerParameters:
+                - Authorization: ___PARAMETER___(AUTHORIZATION)
+              schema:
+                startDate: ___PARAMETER___(startDate)
+                endDate: ___PARAMETER___(endDate)
+                dimensions:
+                  - query
+                rowLimit: 1
+              allowFailure: False
+              forwardResponseErrors: True
+
+    responses:
+
+      - name: ok
+        statuscode: 200
+        default: True
+        schema:
+          map: VALUE(get_search_console_metadata, $)

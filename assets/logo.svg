@@ -1,0 +1,30 @@
+<svg width="960" height="220" viewBox="0 0 960 220" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#1e293b"/>
+    </linearGradient>
+    <linearGradient id="bars" x1="0%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%" stop-color="#4285F4"/>
+      <stop offset="100%" stop-color="#34A853"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="960" height="220" rx="24" fill="url(#bg)"/>
+
+  <!-- bar chart icon -->
+  <g transform="translate(60,50)">
+    <rect x="0"  y="70" width="22" height="50" rx="4" fill="#FBBC05"/>
+    <rect x="32" y="40" width="22" height="80" rx="4" fill="#4285F4"/>
+    <rect x="64" y="10" width="22" height="110" rx="4" fill="#34A853"/>
+
+    <!-- magnifying glass -->
+    <circle cx="108" cy="42" r="34" fill="none" stroke="#EA4335" stroke-width="9"/>
+    <line x1="132" y1="66" x2="156" y2="90" stroke="#EA4335" stroke-width="9" stroke-linecap="round"/>
+  </g>
+
+  <g font-family="Helvetica, Arial, sans-serif">
+    <text x="270" y="112" font-size="46" font-weight="700" fill="#f8fafc">Google Search Console MCP</text>
+    <text x="270" y="148" font-size="22" fill="#94a3b8">Read-only Model Context Protocol server template</text>
+  </g>
+</svg>

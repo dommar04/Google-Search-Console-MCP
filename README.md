@@ -51,10 +51,10 @@ The template is defined in [`google_search_console_mcp_server.yaml`](./google_se
   <img src="./assets/screenshots/01-enable-search-console-api.png" alt="Enabling the Search Console API in the Google Cloud Console" width="600">
 </p>
 
-2. In the [Credentials page](https://console.cloud.google.com/apis/credentials), create an OAuth 2.0 Client ID. You'll need the **Client ID** and **Client Secret**.
+2. In the [Credentials page](https://console.cloud.google.com/apis/credentials/oauthclient), create an OAuth 2.0 Client ID. You'll need the **Client ID** and **Client Secret**.
 
 <p align="center">
-  <img src="./assets/screenshots/create-oauth-client-id.png" alt="Creating an OAuth 2.0 client ID in the Google Cloud Console" width="600">
+  <img src="./assets/screenshots/01-create-oauth-client-id.png" alt="Creating an OAuth 2.0 client ID in the Google Cloud Console" width="600">
 </p>
 
 ### 2. Deploy the template on mcp-builder.ai
